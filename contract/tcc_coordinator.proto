@@ -1,0 +1,84 @@
+syntax = "proto3";
+
+package softtrans.contract.tcc_coordinator;
+option go_package = "tcc_coordinator";
+
+// TCCService comment
+service TCCService {
+    // Begin a transaction
+    rpc BeginTrans (BeginTransRequest) returns (BeginTransResponse); //
+    // Try a step
+    rpc TryStep (TryStepRequest) returns (TryStepResponse); //
+    // Confirm a transaction
+    rpc ConfirmTrans (ConfirmTransRequest) returns (ConfirmTransResponse); //
+    // Cancel a transaction
+    rpc CancelTrans (CancelTransRequest) returns (CancelTransResponse); //
+    // Get info of the transaction
+    rpc GetTrans (GetTransRequest) returns (GetTransResponse); //
+}
+
+message TransactionId {
+    string appId = 1;   // Identifier of app
+    string busCode = 2; // Business Code
+    string trxId = 3;   // Business transactionId
+}
+
+message TransactionStep {
+    string stepId = 1;
+    repeated bytes Args = 2;
+}
+
+message Transaction {
+    TransactionId transactionId = 1;
+    repeated TransactionStep steps = 2;
+    enum TransactionStatus {
+        Init = 0;
+        Committed = 10;
+        RollingBack = 20;
+        RolledBack = 40;
+    }
+    TransactionStatus status = 3;
+}
+
+message BeginTransRequest {
+    TransactionId transactionId = 1;
+}
+
+message BeginTransResponse {
+    Transaction transaction = 1;
+}
+
+message TryStepRequest {
+    TransactionId transactionId = 1;
+    string stepId = 2;
+    repeated bytes Args = 3;
+}
+
+message TryStepResponse {
+    Transaction transaction = 1;
+    string stepId = 2;
+}
+
+message ConfirmTransRequest {
+    TransactionId transactionId = 1;
+}
+
+message ConfirmTransResponse {
+    Transaction transaction = 1;
+}
+
+message CancelTransRequest {
+    TransactionId transactionId = 1;
+}
+
+message CancelTransResponse {
+    Transaction transaction = 1;
+}
+
+message GetTransRequest {
+    TransactionId transactionId = 1;
+}
+
+message GetTransResponse {
+    Transaction transaction = 1;
+}

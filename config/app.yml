@@ -1,0 +1,16 @@
+rpc:
+  server:
+    test:
+      desc: "tcc coordinator service"
+      version: "1.0"
+      address:
+      - url: :9818
+      registry:
+        name: etcd
+        options:
+          heartbeat_interval: 30s
+      max_clients: 1000
+      max_pool_size: 1024
+      backlog: 10000
+      read_timeout: 10s
+      write_timeout: 10s
