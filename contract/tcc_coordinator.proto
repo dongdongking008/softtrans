@@ -1,84 +1,170 @@
 syntax = "proto3";
 
 package softtrans.contract.tcc_coordinator;
-option go_package = "tcc_coordinator";
+option go_package = "contract";
 
 // TCCService comment
 service TCCService {
     // Begin a transaction
-    rpc BeginTrans (BeginTransRequest) returns (BeginTransResponse); //
+    rpc BeginTrans (BeginTransRequest) returns (BeginTransResponse);
+
     // Try a step
-    rpc TryStep (TryStepRequest) returns (TryStepResponse); //
+    rpc TryStep (TryStepRequest) returns (TryStepResponse);
+
     // Confirm a transaction
-    rpc ConfirmTrans (ConfirmTransRequest) returns (ConfirmTransResponse); //
-    // Cancel a transaction
-    rpc CancelTrans (CancelTransRequest) returns (CancelTransResponse); //
+    rpc ConfirmTrans (ConfirmTransRequest) returns (ConfirmTransResponse);
+
+    // Start rolling back a transaction
+    rpc CancelTrans (CancelTransRequest) returns (CancelTransResponse);
+
+    // Mark a transaction rolled back
+    rpc CancelTransSuccess (CancelTransSuccessRequest) returns (CancelTransSuccessResponse);
+
     // Get info of the transaction
-    rpc GetTrans (GetTransRequest) returns (GetTransResponse); //
+    rpc GetTrans (GetTransRequest) returns (GetTransResponse);
+
+    // Get expired transactions
+    rpc GetExpiredTransList (GetExpiredTransListRequest) returns (GetExpiredTransListResponse);
+
+    // Get rolling back transactions
+    rpc GetRollingBackTransList (GetRollingBackTransListRequest) returns (GetRollingBackTransListResponse);
+
 }
 
 message TransactionId {
-    string appId = 1;   // Identifier of app
-    string busCode = 2; // Business Code
-    string trxId = 3;   // Business transactionId
+    // Identifier of app
+    string appId = 1;
+    // Business Code
+    string busCode = 2;
+    // Business transactionId
+    string trxId = 3;
 }
 
 message TransactionStep {
     string stepId = 1;
-    repeated bytes Args = 2;
+    bytes Args = 2;
 }
 
 message Transaction {
     TransactionId transactionId = 1;
-    repeated TransactionStep steps = 2;
+    string transUniqId = 2;
+    repeated TransactionStep steps = 3;
     enum TransactionStatus {
         Init = 0;
         Committed = 10;
         RollingBack = 20;
         RolledBack = 40;
     }
-    TransactionStatus status = 3;
+    TransactionStatus status = 4;
 }
 
 message BeginTransRequest {
     TransactionId transactionId = 1;
+    // 为true时，如果协调器发现已经有相同TransactionId的事务存在，将返回错误 DuplicateRequest
+    // 为false时，如果协调器发现已经有相同TransactionId的事务存在，将返回已经存在的事务
+    bool failFast = 2;
+    // 事务过期时长(单位:秒)
+    int32 expireTimeSeconds = 3;
 }
 
 message BeginTransResponse {
-    Transaction transaction = 1;
+    string transUniqId = 1;
+    enum BeginTransResponseErrorCode {
+        OK = 0;
+        InvalidAppId = 1;
+        EmptyBusCode = 2;
+        EmptyTRXId = 3;
+        DuplicateRequest = 10;
+    }
 }
 
 message TryStepRequest {
-    TransactionId transactionId = 1;
+    string transUniqId = 1;
     string stepId = 2;
-    repeated bytes Args = 3;
+    bytes Args = 3;
 }
 
 message TryStepResponse {
-    Transaction transaction = 1;
+    string transUniqId = 1;
     string stepId = 2;
+    enum TryStepResponseErrorCode {
+        OK = 0;
+        EmptyTransUniqId = 1;
+        EmptyStepId = 2;
+        TransactionNotFound = 10;
+        TransactionStatusError = 11;
+    }
 }
 
 message ConfirmTransRequest {
-    TransactionId transactionId = 1;
+    string transUniqId = 1;
 }
 
 message ConfirmTransResponse {
-    Transaction transaction = 1;
+    string transUniqId = 1;
+    enum ConfirmTransResponseErrorCode {
+        OK = 0;
+        EmptyTransUniqId = 1;
+        TransactionNotFound = 10;
+        TransactionStatusError = 11;
+    }
 }
 
 message CancelTransRequest {
-    TransactionId transactionId = 1;
+    string transUniqId = 1;
 }
 
 message CancelTransResponse {
-    Transaction transaction = 1;
+    string transUniqId = 1;
+    enum ConfirmTransResponseErrorCode {
+        OK = 0;
+        EmptyTransUniqId = 1;
+        TransactionNotFound = 10;
+        TransactionStatusError = 11;
+    }
+}
+
+message CancelTransSuccessRequest {
+    string transUniqId = 1;
+}
+
+message CancelTransSuccessResponse {
+    string transUniqId = 1;
+    enum ConfirmTransSuccessResponseErrorCode {
+        OK = 0;
+        EmptyTransUniqId = 1;
+        TransactionNotFound = 10;
+        TransactionStatusError = 11;
+    }
 }
 
 message GetTransRequest {
-    TransactionId transactionId = 1;
+    string transUniqId = 1;
 }
 
 message GetTransResponse {
     Transaction transaction = 1;
+    enum GetTransResponseErrorCode {
+        OK = 0;
+        InvalidAppId = 1;
+        EmptyBusCode = 2;
+        EmptyTRXId = 3;
+        InvalidTransUniqId = 10;
+    }
+}
+
+message GetExpiredTransListRequest {
+    int32 topN = 1;
+}
+
+message GetExpiredTransListResponse {
+    repeated string transUniqIds = 1;
+}
+
+message GetRollingBackTransListRequest {
+    int32 topN = 1;
+}
+
+message GetRollingBackTransListResponse {
+    repeated Transaction transactions = 1;
 }

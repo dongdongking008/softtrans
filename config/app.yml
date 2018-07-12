@@ -1,6 +1,6 @@
 rpc:
   server:
-    test:
+    softtrans:
       desc: "tcc coordinator service"
       version: "1.0"
       address:
@@ -14,3 +14,4 @@ rpc:
       backlog: 10000
       read_timeout: 10s
       write_timeout: 10s
+      db_address: 192.168.50.24:27017
