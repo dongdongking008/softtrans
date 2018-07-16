@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	TCC_Transaction_Default_Expire_Time_Seconds = time.Duration(30)
+	tccTransactionDefaultExpireTime = time.Duration(30)
 )
 
 type TCCService struct {
@@ -47,7 +47,7 @@ func (s *TCCService) BeginTrans(ctx context.Context, request *contract.BeginTran
 	if request.ExpireTimeSeconds > 0 {
 		trans.ExpireTime = trans.EnterTime.Add(time.Second * time.Duration(request.GetExpireTimeSeconds()))
 	} else {
-		trans.ExpireTime = trans.EnterTime.Add(time.Second * TCC_Transaction_Default_Expire_Time_Seconds)
+		trans.ExpireTime = trans.EnterTime.Add(time.Second * tccTransactionDefaultExpireTime)
 	}
 
 	err := biz.Transaction.Create(trans)
