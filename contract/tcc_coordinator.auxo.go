@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	tccService = &tccServiceClient{rpc.LazyClient{Name: "softtrans.contract"}}
+	tccService = &tccServiceClient{rpc.LazyClient{Name: "softtrans.coordinator"}}
 )
 
 // TCCService comment

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package softtrans.contract.tcc_coordinator;
+package softtrans.coordinator.tcc;
 option go_package = "contract";
 
 // TCCService comment
