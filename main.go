@@ -17,7 +17,7 @@ func main() {
 
 func server() *rpc.Server {
 	//s, _ := rpc.Listen(transport.Address{URL: ":9000"})
-	s, err := rpc.AutoServer("softtrans")
+	s, err := rpc.AutoServer("softtrans.coordinator")
 	if err != nil {
 		panic(err)
 	}
