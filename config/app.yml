@@ -14,4 +14,9 @@ rpc:
       backlog: 10000
       read_timeout: 10s
       write_timeout: 10s
-      db_address: 192.168.50.24:27017
+db.mongo:
+  tcc:
+    address: localhost:27017/softtran_tcc
+    pool_size: 100
+    dial_timeout: 5s
+    consistency: Primary
