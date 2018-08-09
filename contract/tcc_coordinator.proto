@@ -14,6 +14,9 @@ service TCCService {
     // Confirm a transaction
     rpc ConfirmTrans (ConfirmTransRequest) returns (ConfirmTransResponse);
 
+    // Mark a transaction confirmed
+    rpc ConfirmTransSuccess (ConfirmTransSuccessRequest) returns (ConfirmTransSuccessResponse);
+
     // Start rolling back a transaction
     rpc CancelTrans (CancelTransRequest) returns (CancelTransResponse);
 
@@ -26,8 +29,11 @@ service TCCService {
     // Get expired transactions
     rpc GetExpiredTransList (GetExpiredTransListRequest) returns (GetExpiredTransListResponse);
 
-    // Get rolling back transactions
-    rpc GetRollingBackTransList (GetRollingBackTransListRequest) returns (GetRollingBackTransListResponse);
+    // Get confirming transactions
+    rpc GetConfirmingTransList (GetConfirmingTransListRequest) returns (GetConfirmingTransListResponse);
+
+    // Get cancelling transactions
+    rpc GetCancellingTransList (GetCancellingTransListRequest) returns (GetCancellingTransListResponse);
 
 }
 
@@ -42,7 +48,11 @@ message TransactionId {
 
 message TransactionStep {
     string stepId = 1;
-    bytes Args = 2;
+    bytes args = 2;
+    string serverName = 3;
+    string serviceName = 4;
+    string confirmMethodName = 5;
+    string cancelMethodName = 6;
 }
 
 message Transaction {
@@ -50,10 +60,11 @@ message Transaction {
     string transUniqId = 2;
     repeated TransactionStep steps = 3;
     enum TransactionStatus {
-        Init = 0;
-        Committed = 10;
-        RollingBack = 20;
-        RolledBack = 40;
+        Trying = 0;
+        Confirming = 10;
+        Confirmed = 20;
+        Cancelling = 30;
+        Cancelled = 40;
     }
     TransactionStatus status = 4;
 }
@@ -80,8 +91,7 @@ message BeginTransResponse {
 
 message TryStepRequest {
     string transUniqId = 1;
-    string stepId = 2;
-    bytes Args = 3;
+    TransactionStep step = 2;
 }
 
 message TryStepResponse {
@@ -90,7 +100,7 @@ message TryStepResponse {
     enum TryStepResponseErrorCode {
         OK = 0;
         EmptyTransUniqId = 1;
-        EmptyStepId = 2;
+        InvalidStepInfo = 2;
         TransactionNotFound = 10;
         TransactionStatusError = 11;
     }
@@ -110,13 +120,27 @@ message ConfirmTransResponse {
     }
 }
 
+message ConfirmTransSuccessRequest {
+    string transUniqId = 1;
+}
+
+message ConfirmTransSuccessResponse {
+    string transUniqId = 1;
+    enum ConfirmTransSuccessResponseErrorCode {
+        OK = 0;
+        EmptyTransUniqId = 1;
+        TransactionNotFound = 10;
+        TransactionStatusError = 11;
+    }
+}
+
 message CancelTransRequest {
     string transUniqId = 1;
 }
 
 message CancelTransResponse {
     string transUniqId = 1;
-    enum ConfirmTransResponseErrorCode {
+    enum CancelTransResponseErrorCode {
         OK = 0;
         EmptyTransUniqId = 1;
         TransactionNotFound = 10;
@@ -130,7 +154,7 @@ message CancelTransSuccessRequest {
 
 message CancelTransSuccessResponse {
     string transUniqId = 1;
-    enum ConfirmTransSuccessResponseErrorCode {
+    enum CancelTransSuccessResponseErrorCode {
         OK = 0;
         EmptyTransUniqId = 1;
         TransactionNotFound = 10;
@@ -161,10 +185,18 @@ message GetExpiredTransListResponse {
     repeated string transUniqIds = 1;
 }
 
-message GetRollingBackTransListRequest {
+message GetConfirmingTransListRequest {
     int32 topN = 1;
 }
 
-message GetRollingBackTransListResponse {
+message GetConfirmingTransListResponse {
+    repeated Transaction transactions = 1;
+}
+
+message GetCancellingTransListRequest {
+    int32 topN = 1;
+}
+
+message GetCancellingTransListResponse {
     repeated Transaction transactions = 1;
 }

@@ -21,6 +21,8 @@ type TCCService interface {
 	TryStep(context.Context, *TryStepRequest) (*TryStepResponse, error)
 	// Confirm a transaction
 	ConfirmTrans(context.Context, *ConfirmTransRequest) (*ConfirmTransResponse, error)
+	// Mark a transaction confirmed
+	ConfirmTransSuccess(context.Context, *ConfirmTransSuccessRequest) (*ConfirmTransSuccessResponse, error)
 	// Start rolling back a transaction
 	CancelTrans(context.Context, *CancelTransRequest) (*CancelTransResponse, error)
 	// Mark a transaction rolled back
@@ -29,8 +31,10 @@ type TCCService interface {
 	GetTrans(context.Context, *GetTransRequest) (*GetTransResponse, error)
 	// Get expired transactions
 	GetExpiredTransList(context.Context, *GetExpiredTransListRequest) (*GetExpiredTransListResponse, error)
-	// Get rolling back transactions
-	GetRollingBackTransList(context.Context, *GetRollingBackTransListRequest) (*GetRollingBackTransListResponse, error)
+	// Get confirming transactions
+	GetConfirmingTransList(context.Context, *GetConfirmingTransListRequest) (*GetConfirmingTransListResponse, error)
+	// Get cancelling transactions
+	GetCancellingTransList(context.Context, *GetCancellingTransListRequest) (*GetCancellingTransListResponse, error)
 }
 
 func GetTCCService() TCCService {
@@ -77,6 +81,20 @@ func (s *tccServiceClient) ConfirmTrans(ctx context.Context, req *ConfirmTransRe
 
 	resp := new(ConfirmTransResponse)
 	err = c.Call(ctx, "TCCService", "ConfirmTrans", []interface{}{req}, resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (s *tccServiceClient) ConfirmTransSuccess(ctx context.Context, req *ConfirmTransSuccessRequest) (*ConfirmTransSuccessResponse, error) {
+	c, err := s.Try()
+	if err != nil {
+		return nil, err
+	}
+
+	resp := new(ConfirmTransSuccessResponse)
+	err = c.Call(ctx, "TCCService", "ConfirmTransSuccess", []interface{}{req}, resp)
 	if err != nil {
 		return nil, err
 	}
@@ -139,14 +157,28 @@ func (s *tccServiceClient) GetExpiredTransList(ctx context.Context, req *GetExpi
 	return resp, nil
 }
 
-func (s *tccServiceClient) GetRollingBackTransList(ctx context.Context, req *GetRollingBackTransListRequest) (*GetRollingBackTransListResponse, error) {
+func (s *tccServiceClient) GetConfirmingTransList(ctx context.Context, req *GetConfirmingTransListRequest) (*GetConfirmingTransListResponse, error) {
 	c, err := s.Try()
 	if err != nil {
 		return nil, err
 	}
 
-	resp := new(GetRollingBackTransListResponse)
-	err = c.Call(ctx, "TCCService", "GetRollingBackTransList", []interface{}{req}, resp)
+	resp := new(GetConfirmingTransListResponse)
+	err = c.Call(ctx, "TCCService", "GetConfirmingTransList", []interface{}{req}, resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (s *tccServiceClient) GetCancellingTransList(ctx context.Context, req *GetCancellingTransListRequest) (*GetCancellingTransListResponse, error) {
+	c, err := s.Try()
+	if err != nil {
+		return nil, err
+	}
+
+	resp := new(GetCancellingTransListResponse)
+	err = c.Call(ctx, "TCCService", "GetCancellingTransList", []interface{}{req}, resp)
 	if err != nil {
 		return nil, err
 	}

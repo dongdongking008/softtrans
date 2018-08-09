@@ -2,11 +2,11 @@ package service
 
 import (
 	"context"
-	"github.com/dongdongking008/softtrans/contract"
 	"github.com/cuigh/auxo/errors"
-	"github.com/dongdongking008/softtrans/util/clientname"
 	"github.com/dongdongking008/softtrans/biz"
+	"github.com/dongdongking008/softtrans/contract"
 	"github.com/dongdongking008/softtrans/model"
+	"github.com/dongdongking008/softtrans/util/clientname"
 	"time"
 )
 
@@ -15,7 +15,6 @@ const (
 )
 
 type TCCService struct {
-
 }
 
 // Begin a transaction
@@ -35,7 +34,7 @@ func (s *TCCService) BeginTrans(ctx context.Context, request *contract.BeginTran
 	}
 
 	trans := &model.Transaction{
-		Status: model.TransactionStatusInit,
+		Status: model.TransactionStatusTry,
 	}
 	trans.TransId.AppId = transactionId.GetAppId()
 	trans.TransId.BusCode = transactionId.GetBusCode()
@@ -62,7 +61,7 @@ func (s *TCCService) BeginTrans(ctx context.Context, request *contract.BeginTran
 	if err == nil {
 		trans, err = biz.Transaction.TransGetByTransId(&trans.TransId)
 		if err == nil {
-			return &contract.BeginTransResponse{ TransUniqId: trans.ID.String() }, nil
+			return &contract.BeginTransResponse{TransUniqId: trans.ID.String()}, nil
 		}
 	}
 
@@ -74,16 +73,23 @@ func (s *TCCService) TryStep(ctx context.Context, request *contract.TryStepReque
 	if request.GetTransUniqId() == "" {
 		return nil, errors.Coded(int32(contract.TryStepResponse_EmptyTransUniqId), "TransUniqId is Empty!")
 	}
-	if request.GetStepId() == "" {
-		return nil, errors.Coded(int32(contract.TryStepResponse_EmptyStepId), "StepId is Empty!")
+	step := request.GetStep()
+	if step == nil || step.GetStepId() == "" || step.GetServerName() == "" ||
+		step.GetServiceName() == "" || step.GetConfirmMethodName() == "" ||
+		step.GetCancelMethodName() == "" {
+		return nil, errors.Coded(int32(contract.TryStepResponse_InvalidStepInfo), "Step is invalid!")
 	}
 	transStep := &model.TransactionStep{
-		StepId: request.GetStepId(),
-		Args: request.GetArgs(),
+		StepId:            step.GetStepId(),
+		Args:              step.GetArgs(),
+		ServerName:        step.GetServerName(),
+		ServiceName:       step.GetServiceName(),
+		ConfirmMethodName: step.GetConfirmMethodName(),
+		CancelMethodName:  step.GetCancelMethodName(),
 	}
 	err := biz.Transaction.AddStep(request.GetTransUniqId(), transStep)
 	if err == nil {
-		return &contract.TryStepResponse{ TransUniqId:request.GetTransUniqId(), StepId: request.GetStepId()}, nil
+		return &contract.TryStepResponse{TransUniqId: request.GetTransUniqId(), StepId: step.GetStepId()}, nil
 	}
 	return nil, err
 }
@@ -94,7 +100,18 @@ func (s *TCCService) ConfirmTrans(ctx context.Context, request *contract.Confirm
 	}
 	err := biz.Transaction.TransConfirm(request.GetTransUniqId())
 	if err == nil {
-		return &contract.ConfirmTransResponse{ TransUniqId:request.GetTransUniqId()}, nil
+		return &contract.ConfirmTransResponse{TransUniqId: request.GetTransUniqId()}, nil
+	}
+	return nil, err
+}
+
+func (s *TCCService) ConfirmTransSuccess(ctx context.Context, request *contract.ConfirmTransRequest) (*contract.ConfirmTransSuccessResponse, error) {
+	if request.GetTransUniqId() == "" {
+		return nil, errors.Coded(int32(contract.ConfirmTransSuccessResponse_EmptyTransUniqId), "TransUniqId is Empty!")
+	}
+	err := biz.Transaction.TransCancel(request.GetTransUniqId())
+	if err == nil {
+		return &contract.ConfirmTransSuccessResponse{TransUniqId: request.GetTransUniqId()}, nil
 	}
 	return nil, err
 }
@@ -105,7 +122,7 @@ func (s *TCCService) CancelTrans(ctx context.Context, request *contract.CancelTr
 	}
 	err := biz.Transaction.TransCancel(request.GetTransUniqId())
 	if err == nil {
-		return &contract.CancelTransResponse{ TransUniqId:request.GetTransUniqId()}, nil
+		return &contract.CancelTransResponse{TransUniqId: request.GetTransUniqId()}, nil
 	}
 	return nil, err
 }
@@ -116,7 +133,7 @@ func (s *TCCService) CancelTransSuccess(ctx context.Context, request *contract.C
 	}
 	err := biz.Transaction.TransCancel(request.GetTransUniqId())
 	if err == nil {
-		return &contract.CancelTransSuccessResponse{ TransUniqId:request.GetTransUniqId()}, nil
+		return &contract.CancelTransSuccessResponse{TransUniqId: request.GetTransUniqId()}, nil
 	}
 	return nil, err
 }
@@ -125,7 +142,7 @@ func (s *TCCService) GetTrans(ctx context.Context, request *contract.GetTransReq
 	transactionId := request.GetTransUniqId()
 	trans, err := biz.Transaction.TransGet(transactionId)
 	if err == nil {
-		return &contract.GetTransResponse{ Transaction: transModelToProto(trans) }, nil
+		return &contract.GetTransResponse{Transaction: transModelToProto(trans)}, nil
 	} else {
 		return nil, err
 	}
@@ -135,16 +152,27 @@ func (s *TCCService) GetTrans(ctx context.Context, request *contract.GetTransReq
 func (s *TCCService) GetExpiredTransList(ctx context.Context, request *contract.GetExpiredTransListRequest) (*contract.GetExpiredTransListResponse, error) {
 	transUniqIds, err := biz.Transaction.TransGetExpiredList(request.GetTopN())
 	if err == nil {
-		return &contract.GetExpiredTransListResponse{ TransUniqIds: transUniqIds }, nil
+		return &contract.GetExpiredTransListResponse{TransUniqIds: transUniqIds}, nil
 	} else {
 		return nil, err
 	}
 }
-// Get rolling back transactions
-func (s *TCCService) GetRollingBackTransList(ctx context.Context, request *contract.GetRollingBackTransListRequest) (*contract.GetRollingBackTransListResponse, error) {
-	transList, err := biz.Transaction.TransGetRollingBackList(request.GetTopN())
+
+// Get confirming transactions
+func (s *TCCService) GetConfirmingList(ctx context.Context, request *contract.GetConfirmingTransListRequest) (*contract.GetConfirmingTransListResponse, error) {
+	transList, err := biz.Transaction.TransGetConfirmingList(request.GetTopN())
 	if err == nil {
-		return &contract.GetRollingBackTransListResponse{ Transactions: transModelsToProtos(transList) }, nil
+		return &contract.GetConfirmingTransListResponse{Transactions: transModelsToProtos(transList)}, nil
+	} else {
+		return nil, err
+	}
+}
+
+// Get cancelling transactions
+func (s *TCCService) GetCancellingTransList(ctx context.Context, request *contract.GetCancellingTransListRequest) (*contract.GetCancellingTransListResponse, error) {
+	transList, err := biz.Transaction.TransGetCancellingList(request.GetTopN())
+	if err == nil {
+		return &contract.GetCancellingTransListResponse{Transactions: transModelsToProtos(transList)}, nil
 	} else {
 		return nil, err
 	}
@@ -168,21 +196,25 @@ func transModelToProto(trans *model.Transaction) *contract.Transaction {
 	}
 
 	steps := make([]*contract.TransactionStep, 5)
-	for _, step := range trans.Steps  {
+	for _, step := range trans.Steps {
 		steps = append(steps, &contract.TransactionStep{
-			StepId: step.StepId,
-			Args: step.Args,
+			StepId:            step.StepId,
+			Args:              step.Args,
+			ServerName:        step.ServerName,
+			ServiceName:       step.ServiceName,
+			ConfirmMethodName: step.ConfirmMethodName,
+			CancelMethodName:  step.CancelMethodName,
 		})
 	}
 
 	return &contract.Transaction{
-		TransactionId: &contract.TransactionId {
-			AppId: trans.TransId.AppId,
+		TransactionId: &contract.TransactionId{
+			AppId:   trans.TransId.AppId,
 			BusCode: trans.TransId.BusCode,
-			TrxId: trans.TransId.TrxId,
+			TrxId:   trans.TransId.TrxId,
 		},
 		TransUniqId: trans.ID.String(),
-		Steps: steps,
-		Status: contract.Transaction_TransactionStatus(int32(trans.Status)),
+		Steps:       steps,
+		Status:      contract.Transaction_TransactionStatus(int32(trans.Status)),
 	}
 }

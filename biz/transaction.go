@@ -1,9 +1,9 @@
 package biz
 
 import (
-	"github.com/dongdongking008/softtrans/model"
-	"github.com/dongdongking008/softtrans/dao"
 	"github.com/cuigh/auxo/log"
+	"github.com/dongdongking008/softtrans/dao"
+	"github.com/dongdongking008/softtrans/model"
 )
 
 // Event return a event biz instance.
@@ -50,6 +50,13 @@ func (t *transBiz) TransConfirm(transUniqId string) (err error) {
 	return
 }
 
+func (t *transBiz) TransConfirmSuccess(transUniqId string) (err error) {
+	do(func(d *dao.Dao) {
+		err = d.TransConfirmSuccess(transUniqId)
+	})
+	return
+}
+
 func (t *transBiz) TransCancel(transUniqId string) (err error) {
 	do(func(d *dao.Dao) {
 		err = d.TransCancel(transUniqId)
@@ -71,9 +78,16 @@ func (t *transBiz) TransGetExpiredList(topN int32) (transUniqIds []string, err e
 	return
 }
 
-func (t *transBiz) TransGetRollingBackList(topN int32) (transList []*model.Transaction, err error) {
+func (t *transBiz) TransGetConfirmingList(topN int32) (transList []*model.Transaction, err error) {
 	do(func(d *dao.Dao) {
-		transList, err = d.TransGetRollingBackList(topN)
+		transList, err = d.TransGetConfirmingList(topN)
+	})
+	return
+}
+
+func (t *transBiz) TransGetCancellingList(topN int32) (transList []*model.Transaction, err error) {
+	do(func(d *dao.Dao) {
+		transList, err = d.TransGetCancellingList(topN)
 	})
 	return
 }

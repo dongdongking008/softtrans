@@ -67,7 +67,7 @@ func (d *Dao) TransStepAdd(transUniqId string, step *model.TransactionStep) (err
 	err = d.do(func(db mongo.DB) error {
 		return db.C("transaction").Update(bson.D{
 			{Name: "_id", Value: transUniqId},
-			{Name: "status", Value: model.TransactionStatusInit},
+			{Name: "status", Value: model.TransactionStatusTry},
 		},
 			bson.D{
 				{Name: "$addToSet", Value: bson.D{{Name: "steps", Value: step}}},
@@ -91,17 +91,18 @@ func (d *Dao) TransConfirm(transUniqId string) (err error) {
 	err = d.do(func(db mongo.DB) error {
 		return db.C("transaction").Update(bson.D{
 			{Name: "_id", Value: transUniqId},
-			{Name: "status", Value: model.TransactionStatusInit},
+			{Name: "status", Value: model.TransactionStatusTry},
 		},
 			bson.D{
-				{Name: "status", Value: model.TransactionStatusCommitted},
+				{Name: "status", Value: model.TransactionStatusConfirming},
 				{Name: "$set", Value: bson.D{{Name: "lu_time", Value: time.Now()}}},
 			})
 	})
 	if err == mgo.ErrNotFound {
 		trans, errDB := d.TransGet(transUniqId)
 		if trans != nil {
-			if trans.Status == model.TransactionStatusCommitted {
+			if trans.Status == model.TransactionStatusConfirming ||
+				trans.Status == model.TransactionStatusConfirmed {
 				err = nil
 			} else {
 				err = errors.Coded(int32(contract.ConfirmTransResponse_TransactionStatusError), fmt.Sprintf("Transaction status is %d", trans.Status))
@@ -115,22 +116,50 @@ func (d *Dao) TransConfirm(transUniqId string) (err error) {
 	return
 }
 
-func (d *Dao) TransCancel(transUniqId string) (err error) {
+func (d *Dao) TransConfirmSuccess(transUniqId string) (err error) {
 	err = d.do(func(db mongo.DB) error {
 		return db.C("transaction").Update(bson.D{
 			{Name: "_id", Value: transUniqId},
-			{Name: "status", Value: model.TransactionStatusInit},
+			{Name: "status", Value: model.TransactionStatusConfirming},
 		},
 			bson.D{
-				{Name: "status", Value: model.TransactionStatusRollingBack},
+				{Name: "status", Value: model.TransactionStatusConfirmed},
 				{Name: "$set", Value: bson.D{{Name: "lu_time", Value: time.Now()}}},
 			})
 	})
 	if err == mgo.ErrNotFound {
 		trans, errDB := d.TransGet(transUniqId)
 		if trans != nil {
-			if trans.Status == model.TransactionStatusRollingBack ||
-				trans.Status == model.TransactionStatusRolledBack {
+			if trans.Status == model.TransactionStatusConfirmed {
+				err = nil
+			} else {
+				err = errors.Coded(int32(contract.ConfirmTransSuccessResponse_TransactionStatusError), fmt.Sprintf("Transaction status is %d", trans.Status))
+			}
+		} else if errDB == mgo.ErrNotFound {
+			err = errors.Coded(int32(contract.ConfirmTransSuccessResponse_TransactionNotFound), err.Error())
+		} else {
+			err = errDB
+		}
+	}
+	return
+}
+
+func (d *Dao) TransCancel(transUniqId string) (err error) {
+	err = d.do(func(db mongo.DB) error {
+		return db.C("transaction").Update(bson.D{
+			{Name: "_id", Value: transUniqId},
+			{Name: "status", Value: model.TransactionStatusTry},
+		},
+			bson.D{
+				{Name: "status", Value: model.TransactionStatusCancelling},
+				{Name: "$set", Value: bson.D{{Name: "lu_time", Value: time.Now()}}},
+			})
+	})
+	if err == mgo.ErrNotFound {
+		trans, errDB := d.TransGet(transUniqId)
+		if trans != nil {
+			if trans.Status == model.TransactionStatusCancelling ||
+				trans.Status == model.TransactionStatusCancelled {
 				err = nil
 			} else {
 				err = errors.Coded(int32(contract.CancelTransResponse_TransactionStatusError), fmt.Sprintf("Transaction status is %d", trans.Status))
@@ -148,17 +177,17 @@ func (d *Dao) TransCancelSuccess(transUniqId string) (err error) {
 	err = d.do(func(db mongo.DB) error {
 		return db.C("transaction").Update(bson.D{
 			{Name: "_id", Value: transUniqId},
-			{Name: "status", Value: model.TransactionStatusRollingBack},
+			{Name: "status", Value: model.TransactionStatusCancelling},
 		},
 			bson.D{
-				{Name: "status", Value: model.TransactionStatusRolledBack},
+				{Name: "status", Value: model.TransactionStatusCancelled},
 				{Name: "$set", Value: bson.D{{Name: "lu_time", Value: time.Now()}}},
 			})
 	})
 	if err == mgo.ErrNotFound {
 		trans, errDB := d.TransGet(transUniqId)
 		if trans != nil {
-			if trans.Status == model.TransactionStatusRolledBack {
+			if trans.Status == model.TransactionStatusCancelled {
 				err = nil
 			} else {
 				err = errors.Coded(int32(contract.CancelTransSuccessResponse_TransactionStatusError), fmt.Sprintf("Transaction status is %d", trans.Status))
@@ -178,7 +207,7 @@ func (d *Dao) TransGetExpiredList(topN int32) (transUniqIds []string, err error)
 		transList := make([]*model.Transaction, 0)
 		q := bson.M{
 			"expire_time": bson.M{"$lt": time.Now()},
-			"status":      model.TransactionStatusInit,
+			"status":      model.TransactionStatusTry,
 		}
 		s := bson.M{"_id": 1}
 		errDB := db.C("transaction").Find(q).Select(s).
@@ -193,11 +222,23 @@ func (d *Dao) TransGetExpiredList(topN int32) (transUniqIds []string, err error)
 	return
 }
 
-func (d *Dao) TransGetRollingBackList(topN int32) (transList []*model.Transaction, err error) {
+func (d *Dao) TransGetConfirmingList(topN int32) (transList []*model.Transaction, err error) {
 	err = d.do(func(db mongo.DB) error {
 		transList = []*model.Transaction{}
 		q := bson.M{
-			"status": model.TransactionStatusRollingBack,
+			"status": model.TransactionStatusConfirming,
+		}
+		return db.C("transaction").Find(q).Sort("_id").
+			Limit(int(topN)).All(&transList)
+	})
+	return
+}
+
+func (d *Dao) TransGetCancellingList(topN int32) (transList []*model.Transaction, err error) {
+	err = d.do(func(db mongo.DB) error {
+		transList = []*model.Transaction{}
+		q := bson.M{
+			"status": model.TransactionStatusCancelling,
 		}
 		return db.C("transaction").Find(q).Sort("_id").
 			Limit(int(topN)).All(&transList)
