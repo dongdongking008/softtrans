@@ -10,7 +10,8 @@ import (
 )
 
 var (
-	tccService = &tccServiceClient{rpc.LazyClient{Name: "softtrans.coordinator"}}
+	tccService                = &tccServiceClient{rpc.LazyClient{Name: "softtrans.coordinator"}}
+	tccResourceManagerService = &tccResourceManagerServiceClient{rpc.LazyClient{Name: "softtrans.coordinator"}}
 )
 
 // TCCService comment
@@ -179,6 +180,49 @@ func (s *tccServiceClient) GetCancellingTransList(ctx context.Context, req *GetC
 
 	resp := new(GetCancellingTransListResponse)
 	err = c.Call(ctx, "TCCService", "GetCancellingTransList", []interface{}{req}, resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+type TCCResourceManagerService interface {
+	// Confirm (require idempotent)
+	Confirm(context.Context, *RMConfirmTransRequest) (*RMConfirmTransResponse, error)
+	// Cancel (require idempotent)
+	Cancel(context.Context, *RMCancelTransRequest) (*RMCancelTransResponse, error)
+}
+
+func GetTCCResourceManagerService() TCCResourceManagerService {
+	return tccResourceManagerService
+}
+
+type tccResourceManagerServiceClient struct {
+	rpc.LazyClient
+}
+
+func (s *tccResourceManagerServiceClient) Confirm(ctx context.Context, req *RMConfirmTransRequest) (*RMConfirmTransResponse, error) {
+	c, err := s.Try()
+	if err != nil {
+		return nil, err
+	}
+
+	resp := new(RMConfirmTransResponse)
+	err = c.Call(ctx, "TCCResourceManagerService", "Confirm", []interface{}{req}, resp)
+	if err != nil {
+		return nil, err
+	}
+	return resp, nil
+}
+
+func (s *tccResourceManagerServiceClient) Cancel(ctx context.Context, req *RMCancelTransRequest) (*RMCancelTransResponse, error) {
+	c, err := s.Try()
+	if err != nil {
+		return nil, err
+	}
+
+	resp := new(RMCancelTransResponse)
+	err = c.Call(ctx, "TCCResourceManagerService", "Cancel", []interface{}{req}, resp)
 	if err != nil {
 		return nil, err
 	}

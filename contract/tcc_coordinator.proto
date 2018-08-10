@@ -37,6 +37,15 @@ service TCCService {
 
 }
 
+service TCCResourceManagerService {
+
+    // Confirm (require idempotent)
+    rpc Confirm(RMConfirmTransRequest) returns(RMConfirmTransResponse);
+
+    // Cancel (require idempotent)
+    rpc Cancel(RMCancelTransRequest) returns(RMCancelTransResponse);
+}
+
 message TransactionId {
     // Identifier of app
     string appId = 1;
@@ -199,4 +208,24 @@ message GetCancellingTransListRequest {
 
 message GetCancellingTransListResponse {
     repeated Transaction transactions = 1;
+}
+
+message RMConfirmTransRequest {
+    TransactionId transactionId = 1;
+    TransactionStep step = 2;
+}
+
+message RMConfirmTransResponse {
+    TransactionId transactionId = 1;
+    string stepId = 2;
+}
+
+message RMCancelTransRequest {
+    TransactionId transactionId = 1;
+    TransactionStep step = 2;
+}
+
+message RMCancelTransResponse {
+    TransactionId transactionId = 1;
+    string stepId = 2;
 }
