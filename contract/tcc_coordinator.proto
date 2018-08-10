@@ -62,6 +62,7 @@ message TransactionStep {
     string serviceName = 4;
     string confirmMethodName = 5;
     string cancelMethodName = 6;
+    string clientName = 7;
 }
 
 message Transaction {

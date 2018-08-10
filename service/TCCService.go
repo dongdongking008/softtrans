@@ -86,6 +86,7 @@ func (s *TCCService) TryStep(ctx context.Context, request *contract.TryStepReque
 		ServiceName:       step.GetServiceName(),
 		ConfirmMethodName: step.GetConfirmMethodName(),
 		CancelMethodName:  step.GetCancelMethodName(),
+		ClientName:        step.GetClientName(),
 	}
 	err := biz.Transaction.AddStep(request.GetTransUniqId(), transStep)
 	if err == nil {
@@ -204,6 +205,7 @@ func transModelToProto(trans *model.Transaction) *contract.Transaction {
 			ServiceName:       step.ServiceName,
 			ConfirmMethodName: step.ConfirmMethodName,
 			CancelMethodName:  step.CancelMethodName,
+			ClientName:        step.ClientName,
 		})
 	}
 

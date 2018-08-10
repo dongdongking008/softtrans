@@ -34,6 +34,7 @@ type TransactionId struct {
 type TransactionStep struct {
 	StepId            string `bson:"step_id" json:"step_id,omitempty"`
 	Args              []byte `bson:"args" json:"args,omitempty"`
+	ClientName        string `bson:"client_name" json:"client_name,omitempty"`
 	ServerName        string `bson:"server_name" json:"server_name,omitempty"`
 	ServiceName       string `bson:"service_name" json:"service_name,omitempty"`
 	ConfirmMethodName string `bson:"confirm_method_name" json:"confirm_method_name,omitempty"`
