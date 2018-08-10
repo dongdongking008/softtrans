@@ -5,11 +5,11 @@ import (
 	"github.com/cuigh/auxo/net/rpc"
 )
 
-type tccResourceManagerClient struct {
+type TCCResourceManagerClient struct {
 	rpc.LazyClient
 }
 
-func (s *tccResourceManagerClient) Confirm(ctx context.Context, req *RMConfirmTransRequest) (*RMConfirmTransResponse, error) {
+func (s *TCCResourceManagerClient) Confirm(ctx context.Context, req *RMConfirmTransRequest) (*RMConfirmTransResponse, error) {
 	c, err := s.Try()
 	if err != nil {
 		return nil, err
@@ -23,7 +23,7 @@ func (s *tccResourceManagerClient) Confirm(ctx context.Context, req *RMConfirmTr
 	return resp, nil
 }
 
-func (s *tccResourceManagerClient) Cancel(ctx context.Context, req *RMCancelTransRequest) (*RMCancelTransResponse, error) {
+func (s *TCCResourceManagerClient) Cancel(ctx context.Context, req *RMCancelTransRequest) (*RMCancelTransResponse, error) {
 	c, err := s.Try()
 	if err != nil {
 		return nil, err
