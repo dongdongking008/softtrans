@@ -92,10 +92,10 @@ message BeginTransResponse {
     string transUniqId = 1;
     enum BeginTransResponseErrorCode {
         OK = 0;
-        InvalidAppId = 1;
-        EmptyBusCode = 2;
-        EmptyTRXId = 3;
-        DuplicateRequest = 10;
+        InvalidAppId = 1001;
+        EmptyBusCode = 1002;
+        EmptyTRXId = 1003;
+        DuplicateRequest = 1010;
     }
 }
 
@@ -109,10 +109,10 @@ message TryStepResponse {
     string stepId = 2;
     enum TryStepResponseErrorCode {
         OK = 0;
-        EmptyTransUniqId = 1;
-        InvalidStepInfo = 2;
-        TransactionNotFound = 10;
-        TransactionStatusError = 11;
+        EmptyTransUniqId = 1001;
+        InvalidStepInfo = 1002;
+        TransactionNotFound = 1010;
+        TransactionStatusError = 1011;
     }
 }
 
@@ -124,9 +124,9 @@ message ConfirmTransResponse {
     string transUniqId = 1;
     enum ConfirmTransResponseErrorCode {
         OK = 0;
-        EmptyTransUniqId = 1;
-        TransactionNotFound = 10;
-        TransactionStatusError = 11;
+        EmptyTransUniqId = 1001;
+        TransactionNotFound = 1010;
+        TransactionStatusError = 1011;
     }
 }
 
@@ -138,9 +138,9 @@ message ConfirmTransSuccessResponse {
     string transUniqId = 1;
     enum ConfirmTransSuccessResponseErrorCode {
         OK = 0;
-        EmptyTransUniqId = 1;
-        TransactionNotFound = 10;
-        TransactionStatusError = 11;
+        EmptyTransUniqId = 1001;
+        TransactionNotFound = 1010;
+        TransactionStatusError = 1011;
     }
 }
 
@@ -152,9 +152,9 @@ message CancelTransResponse {
     string transUniqId = 1;
     enum CancelTransResponseErrorCode {
         OK = 0;
-        EmptyTransUniqId = 1;
-        TransactionNotFound = 10;
-        TransactionStatusError = 11;
+        EmptyTransUniqId = 1001;
+        TransactionNotFound = 1010;
+        TransactionStatusError = 1011;
     }
 }
 
@@ -166,9 +166,9 @@ message CancelTransSuccessResponse {
     string transUniqId = 1;
     enum CancelTransSuccessResponseErrorCode {
         OK = 0;
-        EmptyTransUniqId = 1;
-        TransactionNotFound = 10;
-        TransactionStatusError = 11;
+        EmptyTransUniqId = 1001;
+        TransactionNotFound = 1010;
+        TransactionStatusError = 1011;
     }
 }
 
@@ -180,10 +180,10 @@ message GetTransResponse {
     Transaction transaction = 1;
     enum GetTransResponseErrorCode {
         OK = 0;
-        InvalidAppId = 1;
-        EmptyBusCode = 2;
-        EmptyTRXId = 3;
-        InvalidTransUniqId = 10;
+        InvalidAppId = 1001;
+        EmptyBusCode = 1002;
+        EmptyTRXId = 1003;
+        InvalidTransUniqId = 1010;
     }
 }
 
