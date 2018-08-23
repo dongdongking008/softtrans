@@ -57,7 +57,7 @@ message TransactionId {
 
 message TransactionStep {
     string stepId = 1;
-    bytes args = 2;
+    repeated bytes args = 2;
     string serverName = 3;
     string serviceName = 4;
     string confirmMethodName = 5;
