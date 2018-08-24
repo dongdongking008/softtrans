@@ -61,7 +61,7 @@ func (s *TCCService) BeginTrans(ctx context.Context, request *contract.BeginTran
 	if err == nil {
 		trans, err = biz.Transaction.TransGetByTransId(&trans.TransId)
 		if err == nil {
-			return &contract.BeginTransResponse{TransUniqId: trans.ID.String()}, nil
+			return &contract.BeginTransResponse{TransUniqId: trans.ID.Hex()}, nil
 		}
 	}
 
@@ -218,7 +218,7 @@ func transModelToProto(trans *model.Transaction) *contract.Transaction {
 			BusCode: trans.TransId.BusCode,
 			TrxId:   trans.TransId.TrxId,
 		},
-		TransUniqId: trans.ID.String(),
+		TransUniqId: trans.ID.Hex(),
 		Steps:       steps,
 		Status:      contract.Transaction_TransactionStatus(int32(trans.Status)),
 	}

@@ -16,7 +16,7 @@ func (d *Dao) TransGet(transUniqId string) (trans *model.Transaction, err error)
 		trans = &model.Transaction{}
 
 		q := bson.M{
-			"_id": transUniqId,
+			"_id": bson.ObjectIdHex(transUniqId),
 		}
 		errDB := db.C("transaction").Find(q).One(trans)
 		if errDB == mgo.ErrNotFound {
@@ -67,7 +67,7 @@ func (d *Dao) TransCreate(trans *model.Transaction) (err error) {
 func (d *Dao) TransStepAdd(transUniqId string, step *model.TransactionStep) (err error) {
 	err = d.do(func(db mongo.DB) error {
 		return db.C("transaction").Update(bson.D{
-			{Name: "_id", Value: transUniqId},
+			{Name: "_id", Value: bson.ObjectIdHex(transUniqId)},
 			{Name: "status", Value: model.TransactionStatusTry},
 		},
 			bson.D{
@@ -91,7 +91,7 @@ func (d *Dao) TransStepAdd(transUniqId string, step *model.TransactionStep) (err
 func (d *Dao) TransConfirm(transUniqId string) (err error) {
 	err = d.do(func(db mongo.DB) error {
 		return db.C("transaction").Update(bson.D{
-			{Name: "_id", Value: transUniqId},
+			{Name: "_id", Value: bson.ObjectIdHex(transUniqId)},
 			{Name: "status", Value: model.TransactionStatusTry},
 		},
 			bson.D{
@@ -120,7 +120,7 @@ func (d *Dao) TransConfirm(transUniqId string) (err error) {
 func (d *Dao) TransConfirmSuccess(transUniqId string) (err error) {
 	err = d.do(func(db mongo.DB) error {
 		return db.C("transaction").Update(bson.D{
-			{Name: "_id", Value: transUniqId},
+			{Name: "_id", Value: bson.ObjectIdHex(transUniqId)},
 			{Name: "status", Value: model.TransactionStatusConfirming},
 		},
 			bson.D{
@@ -148,7 +148,7 @@ func (d *Dao) TransConfirmSuccess(transUniqId string) (err error) {
 func (d *Dao) TransCancel(transUniqId string) (err error) {
 	err = d.do(func(db mongo.DB) error {
 		return db.C("transaction").Update(bson.D{
-			{Name: "_id", Value: transUniqId},
+			{Name: "_id", Value: bson.ObjectIdHex(transUniqId)},
 			{Name: "status", Value: model.TransactionStatusTry},
 		},
 			bson.D{
@@ -177,7 +177,7 @@ func (d *Dao) TransCancel(transUniqId string) (err error) {
 func (d *Dao) TransCancelSuccess(transUniqId string) (err error) {
 	err = d.do(func(db mongo.DB) error {
 		return db.C("transaction").Update(bson.D{
-			{Name: "_id", Value: transUniqId},
+			{Name: "_id", Value: bson.ObjectIdHex(transUniqId)},
 			{Name: "status", Value: model.TransactionStatusCancelling},
 		},
 			bson.D{
