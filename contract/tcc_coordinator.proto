@@ -180,10 +180,10 @@ message GetTransResponse {
     Transaction transaction = 1;
     enum GetTransResponseErrorCode {
         OK = 0;
-        InvalidAppId = 1001;
-        EmptyBusCode = 1002;
-        EmptyTRXId = 1003;
-        InvalidTransUniqId = 1010;
+//        InvalidAppId = 1001;
+//        EmptyBusCode = 1002;
+//        EmptyTRXId = 1003;
+        EmptyTransUniqId = 1010;
     }
 }
 

@@ -140,8 +140,11 @@ func (s *TCCService) CancelTransSuccess(ctx context.Context, request *contract.C
 }
 
 func (s *TCCService) GetTrans(ctx context.Context, request *contract.GetTransRequest) (*contract.GetTransResponse, error) {
-	transactionId := request.GetTransUniqId()
-	trans, err := biz.Transaction.TransGet(transactionId)
+	transUniqId := request.GetTransUniqId()
+	if transUniqId == "" {
+		return nil, errors.Coded(int32(contract.GetTransResponse_EmptyTransUniqId), "TransUniqId is Empty!")
+	}
+	trans, err := biz.Transaction.TransGet(transUniqId)
 	if err == nil {
 		return &contract.GetTransResponse{Transaction: transModelToProto(trans)}, nil
 	} else {
