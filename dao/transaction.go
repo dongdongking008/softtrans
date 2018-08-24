@@ -53,6 +53,7 @@ func (d *Dao) TransGetByTransId(id *model.TransactionId) (trans *model.Transacti
 
 func (d *Dao) TransCreate(trans *model.Transaction) (err error) {
 	err = d.do(func(db mongo.DB) error {
+		trans.ID = bson.NewObjectId()
 		return db.C("transaction").Insert(trans)
 	})
 
