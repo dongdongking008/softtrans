@@ -186,7 +186,7 @@ func transModelsToProtos(transList []*model.Transaction) []*contract.Transaction
 	if transList == nil {
 		return nil
 	}
-	transactions := make([]*contract.Transaction, 5)
+	transactions := make([]*contract.Transaction, 0, 5)
 	for _, trans := range transList {
 		transactions = append(transactions, transModelToProto(trans))
 	}
@@ -199,7 +199,7 @@ func transModelToProto(trans *model.Transaction) *contract.Transaction {
 		return nil
 	}
 
-	steps := make([]*contract.TransactionStep, 5)
+	steps := make([]*contract.TransactionStep, 0, 5)
 	for _, step := range trans.Steps {
 		steps = append(steps, &contract.TransactionStep{
 			StepId:            step.StepId,
