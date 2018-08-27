@@ -70,11 +70,12 @@ message Transaction {
     string transUniqId = 2;
     repeated TransactionStep steps = 3;
     enum TransactionStatus {
-        Trying = 0;
-        Confirming = 10;
-        Confirmed = 20;
-        Cancelling = 30;
-        Cancelled = 40;
+        NotSet = 0;
+        Trying = 10;
+        Confirming = 20;
+        Confirmed = 30;
+        Cancelling = 40;
+        Cancelled = 50;
     }
     TransactionStatus status = 4;
 }

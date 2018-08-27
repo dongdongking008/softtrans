@@ -8,11 +8,12 @@ import (
 type TransactionStatus int32
 
 const (
-	TransactionStatusTry        TransactionStatus = 0
-	TransactionStatusConfirming TransactionStatus = 10
-	TransactionStatusConfirmed  TransactionStatus = 20
-	TransactionStatusCancelling TransactionStatus = 30
-	TransactionStatusCancelled  TransactionStatus = 40
+	TransactionStatusNotSet     TransactionStatus = 0
+	TransactionStatusTry        TransactionStatus = 10
+	TransactionStatusConfirming TransactionStatus = 20
+	TransactionStatusConfirmed  TransactionStatus = 30
+	TransactionStatusCancelling TransactionStatus = 40
+	TransactionStatusCancelled  TransactionStatus = 50
 )
 
 type Transaction struct {
