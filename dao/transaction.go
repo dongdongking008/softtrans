@@ -95,8 +95,10 @@ func (d *Dao) TransConfirm(transUniqId string) (err error) {
 			{Name: "status", Value: model.TransactionStatusTry},
 		},
 			bson.D{
-				{Name: "status", Value: model.TransactionStatusConfirming},
-				{Name: "$set", Value: bson.D{{Name: "lu_time", Value: time.Now()}}},
+				{Name: "$set", Value: bson.D{
+					{Name: "status", Value: model.TransactionStatusConfirming},
+					{Name: "lu_time", Value: time.Now()},
+				}},
 			})
 	})
 	if err == mgo.ErrNotFound {
@@ -124,8 +126,10 @@ func (d *Dao) TransConfirmSuccess(transUniqId string) (err error) {
 			{Name: "status", Value: model.TransactionStatusConfirming},
 		},
 			bson.D{
-				{Name: "status", Value: model.TransactionStatusConfirmed},
-				{Name: "$set", Value: bson.D{{Name: "lu_time", Value: time.Now()}}},
+				{Name: "$set", Value: bson.D{
+					{Name: "status", Value: model.TransactionStatusConfirmed},
+					{Name: "lu_time", Value: time.Now()},
+				}},
 			})
 	})
 	if err == mgo.ErrNotFound {
@@ -152,8 +156,10 @@ func (d *Dao) TransCancel(transUniqId string) (err error) {
 			{Name: "status", Value: model.TransactionStatusTry},
 		},
 			bson.D{
-				{Name: "status", Value: model.TransactionStatusCancelling},
-				{Name: "$set", Value: bson.D{{Name: "lu_time", Value: time.Now()}}},
+				{Name: "$set", Value: bson.D{
+					{Name: "status", Value: model.TransactionStatusCancelling},
+					{Name: "lu_time", Value: time.Now()},
+				}},
 			})
 	})
 	if err == mgo.ErrNotFound {
@@ -181,8 +187,10 @@ func (d *Dao) TransCancelSuccess(transUniqId string) (err error) {
 			{Name: "status", Value: model.TransactionStatusCancelling},
 		},
 			bson.D{
-				{Name: "status", Value: model.TransactionStatusCancelled},
-				{Name: "$set", Value: bson.D{{Name: "lu_time", Value: time.Now()}}},
+				{Name: "$set", Value: bson.D{
+					{Name: "status", Value: model.TransactionStatusCancelled},
+					{Name: "lu_time", Value: time.Now()},
+				}},
 			})
 	})
 	if err == mgo.ErrNotFound {
