@@ -163,7 +163,7 @@ func (s *TCCService) GetExpiredTransList(ctx context.Context, request *contract.
 }
 
 // Get confirming transactions
-func (s *TCCService) GetConfirmingList(ctx context.Context, request *contract.GetConfirmingTransListRequest) (*contract.GetConfirmingTransListResponse, error) {
+func (s *TCCService) GetConfirmingTransList(ctx context.Context, request *contract.GetConfirmingTransListRequest) (*contract.GetConfirmingTransListResponse, error) {
 	transList, err := biz.Transaction.TransGetConfirmingList(request.GetTopN())
 	if err == nil {
 		return &contract.GetConfirmingTransListResponse{Transactions: transModelsToProtos(transList)}, nil
