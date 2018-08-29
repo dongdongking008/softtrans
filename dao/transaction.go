@@ -223,7 +223,7 @@ func (d *Dao) TransGetExpiredList(topN int32) (transUniqIds []string, err error)
 			Sort("_id").Limit(int(topN)).All(&transList)
 		if errDB == nil {
 			for _, trans := range transList {
-				transUniqIds = append(transUniqIds, trans.ID.String())
+				transUniqIds = append(transUniqIds, trans.ID.Hex())
 			}
 		}
 		return errDB
