@@ -110,7 +110,7 @@ func (s *TCCService) ConfirmTransSuccess(ctx context.Context, request *contract.
 	if request.GetTransUniqId() == "" {
 		return nil, errors.Coded(int32(contract.ConfirmTransSuccessResponse_EmptyTransUniqId), "TransUniqId is Empty!")
 	}
-	err := biz.Transaction.TransCancel(request.GetTransUniqId())
+	err := biz.Transaction.TransConfirmSuccess(request.GetTransUniqId())
 	if err == nil {
 		return &contract.ConfirmTransSuccessResponse{TransUniqId: request.GetTransUniqId()}, nil
 	}
@@ -132,7 +132,7 @@ func (s *TCCService) CancelTransSuccess(ctx context.Context, request *contract.C
 	if request.GetTransUniqId() == "" {
 		return nil, errors.Coded(int32(contract.CancelTransSuccessResponse_EmptyTransUniqId), "TransUniqId is Empty!")
 	}
-	err := biz.Transaction.TransCancel(request.GetTransUniqId())
+	err := biz.Transaction.TransCancelSuccess(request.GetTransUniqId())
 	if err == nil {
 		return &contract.CancelTransSuccessResponse{TransUniqId: request.GetTransUniqId()}, nil
 	}
